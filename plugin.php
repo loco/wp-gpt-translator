@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: GPT Translation assistant for Loco Translate
+Plugin Name: ChatGPT Translation assistant for Loco Translate
 Plugin URI: https://github.com/loco/wp-gpt-translator
-Description: Experimental OpenAI (GPT 3.5) integration for Loco Translate
+Description: Experimental ChatGPT integration for Loco Translate using OpenAI's chat completions API
 Author: Tim Whitlock
-Version: 1.0.0
+Version: 1.1.0
 Text Domain: loco-gpt
 Author URI: https://localise.biz/wordpress/plugin
 */
@@ -25,7 +25,13 @@ if( is_admin() ){
     // We only need to do this when the Loco Translate Ajax hook is running.
     function loco_gpt_ajax_init(){
         require __DIR__.'/translator.php';
-        add_filter('loco_api_translate_gpt','loco_gpt_process_batch',0,3);
+        // Loco Translate 2.7 started posting more context data
+        if( version_compare( loco_plugin_version(), '2.7', '>=' ) ){
+            add_filter('loco_api_translate_gpt','loco_gpt_process_batch',0,4);
+        }
+        else {
+            add_filter('loco_api_translate_gpt','loco_gpt_process_batch_legacy',0,3);
+        }
     }
     add_action('loco_api_ajax','loco_gpt_ajax_init',0,0);
 
