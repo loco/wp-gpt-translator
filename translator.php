@@ -34,8 +34,11 @@ function loco_gpt_process_batch( array $targets, array $items, Loco_Locale $loca
 
     // Build specific prompt for this batch
     $prompt = 'Translate the `source` properties of the following JSON objects, using the `context` and `notes` properties to identify the meaning';
-    // TODO Append more language specific data, like region and formality/tone
-    // $prompt.= '. Use the '.$config['tone'].' style';
+    // Append more language specific data, like region and formality/tone
+    $tone = $locale->getFormality();
+    if( '' !== $tone ){
+        $prompt.= '. Use the '.$tone.' style';
+    }
     // Allow custom prompt via filter for this locale, but protecting our base prompt
     $custom = apply_filters( 'loco_gpt_prompt', '', $locale );
     if( '' !== $custom && is_string($custom) ){
@@ -116,17 +119,15 @@ function loco_gpt_process_batch( array $targets, array $items, Loco_Locale $loca
         }
         $i = -1;
         foreach( $result as $r ){
-            // object offset should match ID field if json schema is populated correctly
-            if( ++$i !== $r['id'] ){
-                Loco_error_Debug::trace('Bad id field at [%u] => %s', $i, json_encode($r['id']) );
-                continue;
-            }
+            $item = $items[++$i];
             $translation = $r['text'];
-            if( ! is_string($translation) ){
-                Loco_error_Debug::trace('Translation at [%u] should be a string => %s', $i, json_encode($translation) );
-                continue;
+            // expecting translations back in order, so just sanity checking the ID field
+            $gptId = (int) $r['id'];
+            $ourId = (int) $item['id'];
+            if( $ourId !== $gptId ){
+                Loco_error_Debug::trace('Bad id field at [%u] expected %s, got %s', $i, $ourId, $gptId );
+                $translation = '';
             }
-            // Loco_error_Debug::trace('Translated [%u]: %s => %s', $i, $items[$i]['source'], $translation );
             $targets[$i] = $translation;
         }
     }
