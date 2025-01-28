@@ -5,6 +5,7 @@ Plugin URI: https://github.com/loco/wp-gpt-translator
 Description: Experimental ChatGPT integration for Loco Translate using OpenAI's chat completions API
 Author: Tim Whitlock
 Version: 1.1.0
+Requires Plugins: loco-translate
 Text Domain: loco-gpt
 Author URI: https://localise.biz/wordpress/plugin
 */
